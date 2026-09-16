@@ -25,6 +25,7 @@ const OPTIONS = [
     minHoursIdx: 1,
     format: ["Online"],
     minAge: 15,
+    requiresComputer: true,
     earn: "100–300 € por proyecto",
     desc: "Construye pequeños scripts que ahorren tiempo a negocios locales.",
     next: "Identifica una tarea repetitiva de un negocio cercano y ofrécete a automatizarla gratis la primera vez.",
@@ -37,6 +38,7 @@ const OPTIONS = [
     minHoursIdx: 1,
     format: ["Online"],
     minAge: 15,
+    requiresComputer: true,
     earn: "15–30 €/hora",
     desc: "Pequeñas webs, arreglos o mejoras de código para clientes reales.",
     next: "Crea un portafolio con 2-3 proyectos propios y publícate en Workana o Fiverr.",
@@ -61,6 +63,7 @@ const OPTIONS = [
     minHoursIdx: 1,
     format: ["Online"],
     minAge: 14,
+    requiresComputer: true,
     earn: "Variable (ingreso pasivo)",
     desc: "Plantillas, scripts o mini-guías que vendes una vez y cobras muchas veces.",
     next: "Empaqueta algo que ya sepas hacer y súbelo a Gumroad esta semana.",
@@ -85,6 +88,7 @@ const OPTIONS = [
     minHoursIdx: 0,
     format: ["Online"],
     minAge: 15,
+    requiresComputer: true,
     earn: "10–25 €/encargo",
     desc: "Logos, posts o carteles sencillos con Canva o Figma.",
     next: "Haz 3 diseños de práctica para un negocio ficticio y móntate un mini-portafolio.",
@@ -109,6 +113,7 @@ const OPTIONS = [
     minHoursIdx: 0,
     format: ["Online"],
     minAge: 15,
+    requiresComputer: true,
     earn: "10–20 € por encargo corto",
     desc: "Usas IA para ir rápido, tú aportas la revisión y el criterio.",
     next: "Ofrece tu primer encargo con descuento a cambio de una reseña.",
@@ -220,6 +225,12 @@ const STEPS = [
     options: ["Online", "Presencial", "Me da igual"],
   },
   {
+    key: "computer",
+    title: "¿Tienes acceso a un ordenador propio?",
+    type: "single",
+    options: ["Sí", "No"],
+  },
+  {
     key: "hours",
     title: "¿Cuánto tiempo tienes disponible a la semana?",
     type: "single",
@@ -232,6 +243,7 @@ function scoreOption(opt, answers) {
   const hoursIdx = HOURS_LEVELS.indexOf(answers.hours);
   if (hoursIdx < opt.minHoursIdx) return -1;
   if (answers.format !== "Me da igual" && !opt.format.includes(answers.format)) return -1;
+  if (opt.requiresComputer && answers.computer === "No") return -1;
 
   let score = 0;
   if (opt.category.includes(answers.category)) score += 2;
