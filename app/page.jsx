@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight, ArrowLeft, RotateCcw, Clock, Wallet, Compass } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
 
 // ---------- Banco de opciones (motor de reglas) ----------
 const OPTIONS = [
@@ -275,10 +276,27 @@ export default function IncomeSimulator() {
     return !!answers[current.key];
   };
 
+  const saveAnswers = async (a) => {
+    try {
+      await supabase.from("respuestas").insert({
+        age: Number(a.age),
+        category: a.category,
+        skills: a.skills || [],
+        experience: a.experience,
+        format: a.format,
+        computer: a.computer,
+        hours: a.hours,
+      });
+    } catch {
+      // No bloquear la experiencia del usuario si falla el guardado.
+    }
+  };
+
   const next = () => {
     setDir(1);
     if (step === STEPS.length - 1) {
       setDone(true);
+      saveAnswers(answers);
     } else {
       setStep(step + 1);
     }
