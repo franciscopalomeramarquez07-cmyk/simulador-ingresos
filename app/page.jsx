@@ -264,6 +264,7 @@ export default function IncomeSimulator() {
   const [step, setStep] = useState(-1); // -1 = portada
   const [answers, setAnswers] = useState({ skills: [] });
   const [done, setDone] = useState(false);
+  const [dir, setDir] = useState(1); // 1 = avanzar, -1 = retroceder
 
   const current = STEPS[step];
 
@@ -275,13 +276,17 @@ export default function IncomeSimulator() {
   };
 
   const next = () => {
+    setDir(1);
     if (step === STEPS.length - 1) {
       setDone(true);
     } else {
       setStep(step + 1);
     }
   };
-  const back = () => setStep(Math.max(-1, step - 1));
+  const back = () => {
+    setDir(-1);
+    setStep(Math.max(-1, step - 1));
+  };
 
   const toggleMulti = (key, value) => {
     setAnswers((prev) => {
@@ -328,16 +333,31 @@ export default function IncomeSimulator() {
 
         {/* Preguntas */}
         {step >= 0 && !done && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
-            <div className="flex gap-1.5">
-              {STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1 flex-1 rounded-full ${
-                    i <= step ? "bg-amber-400" : "bg-slate-800"
-                  }`}
-                />
-              ))}
+          <div
+            key={step}
+            className={`bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 ${
+              dir === 1 ? "animate-slide-right" : "animate-slide-left"
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  Pregunta {step + 1} de {STEPS.length}
+                </span>
+                <span className="text-xs font-medium text-slate-500">
+                  {Math.round(((step + 1) / STEPS.length) * 100)}%
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                {STEPS.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                      i <= step ? "bg-amber-400" : "bg-slate-800"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
 
             <h2 className="font-display text-2xl text-slate-50">{current.title}</h2>
