@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import { buildJobLinks } from "../lib/jobLinks";
 import { findMatches } from "../lib/jobMatching";
 import ResultCard from "../components/ResultCard";
+import ShareResult from "../components/ShareResult";
 
 const HOURS_LEVELS = ["Menos de 5h", "5–10h", "10–20h", "Más de 20h"];
 
@@ -314,6 +315,11 @@ export default function IncomeSimulator() {
                         </a>
                       ))}
                     </div>
+                    <ShareResult
+                      titulo={r.titulo}
+                      min={r.ingresoEstimadoMin}
+                      max={r.ingresoEstimadoMax}
+                    />
                   </div>
                 </ResultCard>
               );
