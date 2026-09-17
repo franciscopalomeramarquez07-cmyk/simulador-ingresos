@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, RotateCcw, Clock, Wallet, Compass, ExternalLink } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { buildJobLinks } from "../lib/jobLinks";
@@ -61,6 +62,7 @@ export default function IncomeSimulator() {
   const [answers, setAnswers] = useState({ skills: [] });
   const [done, setDone] = useState(false);
   const [dir, setDir] = useState(1); // 1 = avanzar, -1 = retroceder
+  const [whatIf, setWhatIf] = useState(null); // null | "experience" | "format" | "hours"
 
   const current = STEPS[step];
 
@@ -114,14 +116,47 @@ export default function IncomeSimulator() {
     setAnswers({ skills: [] });
     setStep(-1);
     setDone(false);
+    setWhatIf(null);
   };
 
-  const recs = done ? findMatches(answers) : [];
+  const invertFormato = (format) => {
+    if (format === "Online") return "Presencial";
+    if (format === "Presencial") return "Online";
+    return "Online";
+  };
+
+  const nextHoursLevel = (hours) => {
+    const idx = HOURS_LEVELS.indexOf(hours);
+    if (idx === -1 || idx >= HOURS_LEVELS.length - 1) return hours;
+    return HOURS_LEVELS[idx + 1];
+  };
+
+  const applyWhatIf = (base, type) => {
+    if (type === "experience") {
+      return { ...base, experience: base.experience === "Sí" ? "No" : "Sí" };
+    }
+    if (type === "format") {
+      return { ...base, format: invertFormato(base.format) };
+    }
+    if (type === "hours") {
+      return { ...base, hours: nextHoursLevel(base.hours) };
+    }
+    return base;
+  };
+
+  const toggleWhatIf = (type) => {
+    setWhatIf((prev) => (prev === type ? null : type));
+  };
+
+  const hasNextHoursLevel = HOURS_LEVELS.indexOf(answers.hours) < HOURS_LEVELS.length - 1;
+  const effectiveAnswers = whatIf ? applyWhatIf(answers, whatIf) : answers;
+
+  const recs = done ? findMatches(effectiveAnswers) : [];
   const fallbackLinks =
     done && recs.length === 0
       ? buildJobLinks({
-          keyword: answers.category || "empleo",
-          remote: answers.format === "Online",
+          keyword: effectiveAnswers.category || "empleo",
+          remote: effectiveAnswers.format === "Online",
         })
       : [];
 
@@ -270,6 +305,54 @@ export default function IncomeSimulator() {
               </p>
             </div>
 
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                onClick={() => toggleWhatIf("experience")}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  whatIf === "experience"
+                    ? "border-amber-400 bg-amber-400/10 text-amber-300"
+                    : "border-slate-700 text-slate-300 hover:border-slate-600"
+                }`}
+              >
+                {answers.experience === "Sí"
+                  ? "¿Y si NO tuvieras experiencia?"
+                  : "¿Y si tuvieras experiencia?"}
+              </button>
+              <button
+                onClick={() => toggleWhatIf("format")}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  whatIf === "format"
+                    ? "border-amber-400 bg-amber-400/10 text-amber-300"
+                    : "border-slate-700 text-slate-300 hover:border-slate-600"
+                }`}
+              >
+                ¿Y si fuera {invertFormato(answers.format).toLowerCase()}?
+              </button>
+              <button
+                onClick={() => toggleWhatIf("hours")}
+                disabled={!hasNextHoursLevel}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-slate-700 ${
+                  whatIf === "hours"
+                    ? "border-amber-400 bg-amber-400/10 text-amber-300"
+                    : "border-slate-700 text-slate-300 hover:border-slate-600"
+                }`}
+              >
+                ¿Y si tuvieras más horas disponibles?
+              </button>
+            </div>
+
+            {whatIf && (
+              <p className="text-center text-xs text-slate-500">
+                Estás viendo una simulación, no tu resultado guardado.{" "}
+                <button
+                  onClick={() => setWhatIf(null)}
+                  className="text-amber-400 hover:text-amber-300 underline"
+                >
+                  Volver a tu resultado real
+                </button>
+              </p>
+            )}
+
             {recs.length === 0 && (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 text-center">
                 <p className="text-slate-400 text-sm">
@@ -293,47 +376,50 @@ export default function IncomeSimulator() {
               </div>
             )}
 
-            {recs.map((r, i) => {
-              const jobLinks = buildJobLinks({
-                keyword: r.titulo,
-                remote: r.formatos.includes("online"),
-              });
-              return (
-                <ResultCard key={r.id} index={i}>
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="font-display text-xl text-slate-50">{r.titulo}</h3>
-                      <span className="inline-flex items-center gap-1 text-amber-400 text-sm whitespace-nowrap">
-                        <Wallet className="w-4 h-4" /> {r.ingresoEstimadoMin}–{r.ingresoEstimadoMax} €
-                      </span>
+            <AnimatePresence mode="popLayout">
+              {recs.map((r, i) => {
+                const jobLinks = buildJobLinks({
+                  keyword: r.titulo,
+                  remote: r.formatos.includes("online"),
+                });
+                return (
+                  <ResultCard key={r.id} index={i}>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="font-display text-xl text-slate-50">{r.titulo}</h3>
+                        <span className="inline-flex items-center gap-1 text-amber-400 text-sm whitespace-nowrap">
+                          <Wallet className="w-4 h-4" /> {r.ingresoEstimadoMin}–
+                          {r.ingresoEstimadoMax} €
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-sm">{r.desc}</p>
+                      <div className="pt-2 border-t border-slate-800 text-sm text-slate-300">
+                        <span className="text-slate-500">Primer paso: </span>
+                        {r.next}
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {jobLinks.map((link) => (
+                          <a
+                            key={link.portal}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-slate-300 border border-slate-700 rounded-full px-3 py-1 hover:border-amber-400 hover:text-amber-300 transition-colors"
+                          >
+                            {link.portal} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ))}
+                      </div>
+                      <ShareResult
+                        titulo={r.titulo}
+                        min={r.ingresoEstimadoMin}
+                        max={r.ingresoEstimadoMax}
+                      />
                     </div>
-                    <p className="text-slate-400 text-sm">{r.desc}</p>
-                    <div className="pt-2 border-t border-slate-800 text-sm text-slate-300">
-                      <span className="text-slate-500">Primer paso: </span>
-                      {r.next}
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {jobLinks.map((link) => (
-                        <a
-                          key={link.portal}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-slate-300 border border-slate-700 rounded-full px-3 py-1 hover:border-amber-400 hover:text-amber-300 transition-colors"
-                        >
-                          {link.portal} <ExternalLink className="w-3 h-3" />
-                        </a>
-                      ))}
-                    </div>
-                    <ShareResult
-                      titulo={r.titulo}
-                      min={r.ingresoEstimadoMin}
-                      max={r.ingresoEstimadoMax}
-                    />
-                  </div>
-                </ResultCard>
-              );
-            })}
+                  </ResultCard>
+                );
+              })}
+            </AnimatePresence>
 
             <button
               onClick={reset}
