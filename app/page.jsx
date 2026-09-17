@@ -8,6 +8,7 @@ import { buildJobLinks } from "../lib/jobLinks";
 import { findMatches } from "../lib/jobMatching";
 import ResultCard from "../components/ResultCard";
 import ShareResult from "../components/ShareResult";
+import RankingSemanal from "../components/RankingSemanal";
 
 const HOURS_LEVELS = ["Menos de 5h", "5–10h", "10–20h", "Más de 20h"];
 
@@ -154,6 +155,7 @@ export default function IncomeSimulator() {
               </Link>
               .
             </p>
+            <RankingSemanal />
           </div>
         )}
 
