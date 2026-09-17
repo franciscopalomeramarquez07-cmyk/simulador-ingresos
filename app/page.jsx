@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, ArrowLeft, RotateCcw, Clock, Wallet, Compass, ExternalLink } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { buildJobLinks } from "../lib/jobLinks";
@@ -146,6 +147,13 @@ export default function IncomeSimulator() {
             >
               Empezar <ArrowRight className="w-4 h-4" />
             </button>
+            <p className="text-sm text-slate-500">
+              ¿Quieres ver todos los trabajos disponibles?{" "}
+              <Link href="/explorar" className="text-amber-400 hover:text-amber-300 underline">
+                Explóralos aquí
+              </Link>
+              .
+            </p>
           </div>
         )}
 
@@ -331,6 +339,13 @@ export default function IncomeSimulator() {
             >
               <RotateCcw className="w-4 h-4" /> Empezar de nuevo
             </button>
+            <p className="text-center text-sm text-slate-500">
+              ¿Quieres ver todos los trabajos disponibles?{" "}
+              <Link href="/explorar" className="text-amber-400 hover:text-amber-300 underline">
+                Explóralos aquí
+              </Link>
+              .
+            </p>
           </div>
         )}
       </div>
