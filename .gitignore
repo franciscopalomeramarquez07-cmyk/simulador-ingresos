@@ -2,3 +2,8 @@ node_modules
 .next
 .env
 .env*.local
+
+# graphify: el grafo se genera en local (`graphify update .`)
+graphify-out/
+.claude/settings.json.graphify-bak
+.claude/skills/graphify/SKILL.md.bak

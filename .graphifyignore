@@ -1,0 +1,7 @@
+# Archivos que graphify no debe meter en el grafo (misma sintaxis que .gitignore).
+# Con esto el grafo es solo de código: `graphify update .` lo construye en local
+# sin lanzar subagentes ni gastar tokens en analizar documentos o imágenes.
+
+# Documentación, instrucciones para agentes y configuración de Claude: no son código.
+*.md
+.claude/
